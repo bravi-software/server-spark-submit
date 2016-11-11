@@ -13,6 +13,18 @@ import (
 // version is definded during the build
 var version string
 
+func getServiceAddress() string {
+	if env := os.Getenv("VIRTUAL_PORT"); env != "" {
+		return ":" + env
+	}
+
+	if env := os.Getenv("HTTP_PORT"); env != "" {
+		return ":" + env
+	}
+
+	return ":3000"
+}
+
 func handleSubmit(w http.ResponseWriter, r *http.Request, defaults []string) {
 	var d struct{ Args []string }
 
@@ -62,6 +74,7 @@ func main() {
 		http.NotFound(w, r)
 	})
 
-	log.Println("Starting server")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	addrs := getServiceAddress()
+	log.Printf("Starting server at %s\n", addrs)
+	log.Fatal(http.ListenAndServe(addrs, nil))
 }
