@@ -12,6 +12,13 @@ import (
 
 // version is definded during the build
 var version string
+var debug bool
+
+func logDebug(msg interface{}) {
+	if debug {
+		log.Print(msg)
+	}
+}
 
 func getServiceAddress() string {
 	if env := os.Getenv("VIRTUAL_PORT"); env != "" {
@@ -34,6 +41,8 @@ func handleSubmit(w http.ResponseWriter, r *http.Request, defaults []string) {
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&d)
+	logDebug(d)
+
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return
@@ -47,12 +56,17 @@ func handleSubmit(w http.ResponseWriter, r *http.Request, defaults []string) {
 	args := append(defaults, d.Args...)
 
 	out, err := exec.Command("spark-submit", args...).CombinedOutput()
+	logDebug(string(out))
+
+	if out != nil {
+		http.Error(w, string(out), 400)
+		return
+	}
+
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-
-	log.Println(out)
 
 	w.WriteHeader(200)
 }
@@ -61,6 +75,10 @@ func main() {
 	if len(os.Args) > 1 && os.Args[1] == "version" {
 		fmt.Println("server-spark-submit version " + version)
 		return
+	}
+
+	if len(os.Args) > 1 && os.Args[1] == "debug" {
+		debug = true
 	}
 
 	defaults := strings.Split(os.Getenv("SPARK_SUBMIT_DEFAULT_ARGS"), " ")
