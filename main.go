@@ -58,17 +58,18 @@ func handleSubmit(w http.ResponseWriter, r *http.Request, defaults []string) {
 	out, err := exec.Command("spark-submit", args...).CombinedOutput()
 	logDebug(string(out))
 
-	if out != nil {
-		http.Error(w, string(out), 400)
-		return
-	}
-
 	if err != nil {
-		http.Error(w, err.Error(), 400)
+		msg := err.Error()
+		if out != nil {
+			msg = string(out)
+		}
+
+		http.Error(w, msg, 400)
 		return
 	}
 
 	w.WriteHeader(200)
+	w.Write(out)
 }
 
 func main() {
