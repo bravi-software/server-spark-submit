@@ -16,3 +16,9 @@ SPARK_SUBMIT_DEFAULT_ARGS="--deploy-mode client --packages com.databricks:spark-
 ```
 go build  -ldflags "-X main.version=1"
 ```
+
+Or
+
+```
+goxc
+```
